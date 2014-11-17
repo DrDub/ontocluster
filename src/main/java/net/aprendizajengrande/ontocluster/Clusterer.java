@@ -47,7 +47,7 @@ public class Clusterer {
 	public static void main(String[] args) throws ClassNotFoundException,
 			IOException, InterruptedException {
 
-		if (args.length != 1) {
+		if (args.length != 3) {
 			System.err
 					.println("Usage: <input hdfs folder with vectors> <hdfs folder for output> <local folder for output>");
 			System.exit(1);
@@ -58,6 +58,13 @@ public class Clusterer {
 		long seed = 67241;
 		int numClusters = 250;
 		int numIterations = 500;
+
+		// see
+		// http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+		conf.set("fs.hdfs.impl",
+				org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+		conf.set("fs.file.impl",
+				org.apache.hadoop.fs.LocalFileSystem.class.getName());
 
 		// crear vectores en HDFS
 		System.out.println("Input: " + args[0]);
