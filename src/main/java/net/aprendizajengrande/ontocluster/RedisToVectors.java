@@ -21,7 +21,6 @@ package net.aprendizajengrande.ontocluster;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,7 +48,14 @@ public class RedisToVectors {
 		Configuration conf = new Configuration();
 
 		System.out.println("Input: " + args[0]);
-		
+
+		// see
+		// http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+		conf.set("fs.hdfs.impl",
+				org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+		conf.set("fs.file.impl",
+				org.apache.hadoop.fs.LocalFileSystem.class.getName());
+
 		String inputName = args[0] + "/input";
 		String relsInputName = args[0] + "/rels";
 		String instancesInputName = args[0] + "/instances";
@@ -61,8 +67,7 @@ public class RedisToVectors {
 		Jedis jedis = new Jedis("localhost");
 
 		// create the relations and instances first, so we know what to expect
-		jedis.getClient().keys("rel-nom-*");
-		List<String> rels = jedis.getClient().getMultiBulkReply();
+		Set<String> rels = jedis.keys("rel-nom-*");
 
 		Map<Integer, String> relIdToName = new HashMap<>();
 
@@ -84,8 +89,7 @@ public class RedisToVectors {
 		pw.close();
 		rels.clear();
 
-		jedis.getClient().keys("res-nom-*");
-		List<String> instances = jedis.getClient().getMultiBulkReply();
+		Set<String> instances = jedis.keys("res-nom-*");
 
 		fsdos = instancesInput.getFileSystem(conf).create(instancesInput);
 		pw = new PrintWriter(new OutputStreamWriter(fsdos));
@@ -99,8 +103,7 @@ public class RedisToVectors {
 		pw.close();
 		instances.clear();
 
-		jedis.getClient().keys("r-*");
-		List<String> keys = jedis.getClient().getMultiBulkReply();
+		Set<String> keys = jedis.keys("r-*");
 
 		SequenceFile.Writer writer = SequenceFile.createWriter(conf,
 				Writer.file(input), Writer.keyClass(Text.class),
@@ -116,7 +119,7 @@ public class RedisToVectors {
 			writer.append(new Text(key), v);
 		}
 		writer.close();
-		
-		jedis.close();	
+
+		jedis.close();
 	}
 }
