@@ -48,6 +48,8 @@ public class RedisToVectors {
 
 		Configuration conf = new Configuration();
 
+		System.out.println("Input: " + args[0]);
+		
 		String inputName = args[0] + "/input";
 		String relsInputName = args[0] + "/rels";
 		String instancesInputName = args[0] + "/instances";
