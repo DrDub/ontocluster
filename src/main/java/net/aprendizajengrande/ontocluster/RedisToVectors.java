@@ -64,7 +64,8 @@ public class RedisToVectors {
 		Path relsInput = new Path(relsInputName);
 		Path instancesInput = new Path(instancesInputName);
 
-		Jedis jedis = new Jedis("localhost");
+		// see http://stackoverflow.com/questions/14993644/configure-jedis-timeout
+		Jedis jedis = new Jedis("localhost", 6379, 18000);
 
 		// create the relations and instances first, so we know what to expect
 		Set<String> rels = jedis.keys("rel-nom-*");
