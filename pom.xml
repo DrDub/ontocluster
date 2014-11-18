@@ -101,10 +101,6 @@
                                 <artifactId>maven-assembly-plugin</artifactId>
                                 <configuration>
                                         <archive>
-                                                <manifest>
-                                                        <mainClass>net.aprendizajengrande.gitrecommender.Recommend</mainClass
->
-                                                </manifest>
                                         </archive>
                                         <descriptorRefs>
                                                 <descriptorRef>jar-with-dependencies</descriptorRef>

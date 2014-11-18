@@ -80,7 +80,7 @@ public class Clusterer {
 				+ "-final");
 
 		// cluster
-		KMeansDriver.run(input, clusters, output, 0.5, numIterations, true,
+		KMeansDriver.run(input, clusters, output, 0.005, numIterations, true,
 				0.0, false);
 
 		// read the rel names, to pretty print
