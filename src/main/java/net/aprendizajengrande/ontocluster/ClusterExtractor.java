@@ -35,31 +35,38 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.mahout.clustering.Cluster;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
-import org.apache.mahout.clustering.kmeans.KMeansDriver;
-import org.apache.mahout.clustering.kmeans.RandomSeedGenerator;
 import org.apache.mahout.common.Pair;
-import org.apache.mahout.common.distance.CosineDistanceMeasure;
-import org.apache.mahout.common.distance.DistanceMeasure;
 import org.apache.mahout.common.iterator.sequencefile.PathType;
 import org.apache.mahout.common.iterator.sequencefile.SequenceFileDirIterable;
 import org.apache.mahout.math.Vector;
 
-public class Clusterer {
+public class ClusterExtractor {
+
+	public static Path findFinalClusters(String prefix, Configuration conf)
+			throws IllegalArgumentException, IOException {
+		int numIterations = 0;
+		Path result = new Path(prefix + "/clusters-" + numIterations + "-final");
+		while (!result.getFileSystem(conf).exists(result)
+				&& numIterations < 20000) {
+			numIterations++;
+			result = new Path(prefix + "/clusters-" + numIterations + "-final");
+		}
+		if (numIterations == 20000) {
+			return null;
+		}
+		return result;
+	}
 
 	public static void main(String[] args) throws ClassNotFoundException,
 			IOException, InterruptedException {
 
 		if (args.length != 3) {
 			System.err
-					.println("Usage: <input hdfs folder with vectors> <hdfs folder for output> <local folder for output>");
+					.println("Usage: <input hdfs folder with rels> <hdfs folder for output> <local folder for output>");
 			System.exit(1);
 		}
 
 		Configuration conf = new Configuration();
-		DistanceMeasure measure = new CosineDistanceMeasure();
-		long seed = 67241;
-		int numClusters = 250;
-		int numIterations = 500;
 
 		// see
 		// http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
@@ -70,18 +77,6 @@ public class Clusterer {
 
 		// crear vectores en HDFS
 		System.out.println("Input: " + args[0]);
-		Path input = new Path(args[0] + "/input");
-
-		// first centroids are an input parameter to clustering
-		Path clusters = new Path(args[0] + "/clusters");
-		clusters = RandomSeedGenerator.buildRandom(conf, input, clusters,
-				numClusters, measure, seed);
-
-		Path output = new Path(args[1]);
-
-		// cluster
-		KMeansDriver.run(input, clusters, output, 0.005, numIterations, true,
-				0.0, false);
 
 		// read the rel names, to pretty print
 
@@ -98,12 +93,16 @@ public class Clusterer {
 		}
 
 		// read output
-		Path outputFinal = ClusterExtractor.findFinalClusters(args[1], conf);
+		Path outputFinal = findFinalClusters(args[1], conf);
 		if (outputFinal == null) {
 			System.err.println("Couldn't find final clusters at '" + args[1]
 					+ "-\\d+-final'");
 			System.exit(1);
 		}
+
+		// delete the _SUCCESS file as it is problematic
+		// see
+		// http://stackoverflow.com/questions/10752708/eofexception-at-org-apache-hadoop-io-sequencefilereader-initsequencefile-java
 		Path successFile = new Path(outputFinal, "_SUCCESS");
 		if (fs.exists(successFile)) {
 			fs.delete(successFile, false);
