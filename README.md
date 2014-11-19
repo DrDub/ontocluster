@@ -41,3 +41,8 @@ deb http://http.debian.net/debian/ wheezy-backports main contrib non-free
 deb-src http://http.debian.net/debian/ wheezy-backports main contrib non-free
 
 apt-get install -t wheezy-backports redis-server
+
+Sample Output
+-------------
+
+See http://aprendizajengrande.net/clases/material/cluster_output_dbpedia_250_0.005_cosine.txt
